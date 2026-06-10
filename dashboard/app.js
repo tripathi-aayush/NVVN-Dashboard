@@ -2,7 +2,7 @@
    app.js — Chhattisgarh Power Grid Dashboard
    ============================================================ */
 
-const API = 'http://127.0.0.1:8000/api/power';
+const API = 'https://nvvn-dashboard.onrender.com/api/power';
 
 /* ── State ── */
 const state = {

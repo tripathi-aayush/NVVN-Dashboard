@@ -116,18 +116,14 @@ async function loadLivePage() {
        return ptDt <= now && (now.getTime() - ptDt.getTime()) < 5 * 60 * 1000;
     }) || points[points.length-1] || {};
 
-    // Calculate Real-Time Calibration shift, but intentionally leave a realistic 1% to 1.5% margin of error
-    // so the model looks authentic and not "perfectly" faked to match the live reading.
-    const trueRatio = (liveMW && currSlotPt.mw) ? (liveMW / currSlotPt.mw) : 1;
-    // Introduce a static, realistic offset (e.g., 0.8% error) so the forecast is close but never mathematically identical
-    const scaleFactor = trueRatio * 0.992;
+    // True ML Method: No calibration, just raw XGBoost predictions.
+    const scaleFactor = 1;
 
     if (el('stat-forecast-current') && currSlotPt.mw) {
-      animateCounter(el('stat-forecast-current'), currSlotPt.mw * scaleFactor);
+      animateCounter(el('stat-forecast-current'), currSlotPt.mw);
     }
     if (el('stat-peak') && data.peak_load_mw) {
-      // Sync the displayed peak with the scaled graph peak
-      animateCounter(el('stat-peak'), data.peak_load_mw * scaleFactor);
+      animateCounter(el('stat-peak'), data.peak_load_mw);
     }
 
     // 3. Current MAPE Calculation is handled below
@@ -173,8 +169,8 @@ async function loadLivePage() {
     });
 
     if (el('stat-current-mape') && liveMW && currSlotPt.mw) {
-      const calibratedForecast = currSlotPt.mw * scaleFactor;
-      const diff = Math.abs(liveMW - calibratedForecast) / liveMW * 100;
+      const rawForecast = currSlotPt.mw;
+      const diff = Math.abs(liveMW - rawForecast) / liveMW * 100;
       animateCounter(el('stat-current-mape'), diff, 1200, 2);
     }
     
@@ -424,21 +420,8 @@ async function loadNext7DaysPage() {
         liveMW = parseFloat((meritReq[0].Demand || meritReq[0].CurrentDemand || "").toString().replace(/,/g, '')) || null;
       }
 
-      // 2. Compute exact scale factor from Live Monitor
-      let scaleFactor = 1;
-      if (liveMW && data5min.points) {
-         const now = new Date();
-         const currSlotPt = data5min.points.find(p => {
-            const ptDt = new Date(p.datetime);
-            return ptDt <= now && (now.getTime() - ptDt.getTime()) < 5 * 60 * 1000;
-         }) || data5min.points[data5min.points.length-1] || {};
-         
-         const trueRatio = (liveMW && currSlotPt.mw) ? (liveMW / currSlotPt.mw) : 1;
-         scaleFactor = trueRatio * 0.992;
-      }
-
-      // 3. Compute true calibrated peak
-      const truePeak = data5min.peak_load_mw * scaleFactor;
+      // 3. Use true uncalibrated peak
+      const truePeak = data5min.peak_load_mw;
       const basePeak = points[0].peak_load_mw || 4000;
       const ratio = truePeak / basePeak;
       

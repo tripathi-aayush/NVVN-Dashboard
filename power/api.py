@@ -473,7 +473,11 @@ def get_current_state_status(request, state_code: StateShortEnum):
 
         url = f"https://meritindia.in/StateWiseDetails/BindCurrentStateStatus?StateCode={merit_code}"
 
-        response = requests.get(url, timeout=10, verify=False)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json, text/plain, */*"
+        }
+        response = requests.get(url, headers=headers, timeout=10, verify=False)
         response.raise_for_status()
 
         return response.json()

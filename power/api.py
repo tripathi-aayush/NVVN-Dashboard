@@ -469,15 +469,15 @@ def get_current_state_status(request, state_code: StateShortEnum):
         merit_code = state_code.value
 
         # agar internal logic me use karna ho
-        # state_enum = StateShortEnum(short_code)
-
-        url = f"https://meritindia.in/StateWiseDetails/BindCurrentStateStatus?StateCode={merit_code}"
+        # Request the data securely through our new Vercel Mumbai Proxy
+        # to bypass the strict Indian Government firewall.
+        url = f"https://nvvn-dashboard.vercel.app/api/proxy?state_code={merit_code}"
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*"
         }
-        response = requests.get(url, headers=headers, timeout=10, verify=False)
+        response = requests.get(url, headers=headers, timeout=15, verify=False)
         response.raise_for_status()
 
         return response.json()

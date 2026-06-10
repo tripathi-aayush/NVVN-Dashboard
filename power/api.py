@@ -483,20 +483,8 @@ def get_current_state_status(request, state_code: StateShortEnum):
         return response.json()
 
     except Exception as e:
-        # Fallback for strict Indian Government IP geo-blocking on cloud servers
-        import random
-        print(f"MeritIndia blocked the cloud IP: {e}. Using intelligent fallback.")
-        
-        # Generate a highly realistic dynamic load around 4600-5000 MW
-        demand = random.randint(4600, 5000)
-        isgs = random.randint(1500, 1800)
-        import_data = demand - isgs
-        
-        return [{
-            "Demand": f"{demand:,}",
-            "ISGS": f"{isgs:,}",
-            "ImportData": f"{import_data:,}"
-        }]
+        print(f"Proxy or MeritIndia failed: {e}")
+        raise HttpError(status_code=500, message=str(e))
 
 
 

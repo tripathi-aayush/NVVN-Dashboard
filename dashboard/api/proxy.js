@@ -1,3 +1,5 @@
+import https from 'https';
+
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -15,27 +17,43 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'state_code is required' });
   }
 
-  try {
-    const meritUrl = `https://meritindia.in/StateWiseDetails/BindCurrentStateStatus?StateCode=${state_code}`;
-    
-    // Fetch from Merit India
-    const response = await fetch(meritUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json, text/plain, */*'
-      }
+  const options = {
+    hostname: 'meritindia.in',
+    path: `/StateWiseDetails/BindCurrentStateStatus?StateCode=${state_code}`,
+    method: 'GET',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Accept': 'application/json, text/plain, */*'
+    },
+    // Bypass invalid SSL certificate errors (equivalent to verify=False in Python)
+    rejectUnauthorized: false
+  };
+
+  return new Promise((resolve) => {
+    const request = https.request(options, (response) => {
+      let data = '';
+
+      response.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      response.on('end', () => {
+        try {
+          const jsonData = JSON.parse(data);
+          res.status(200).json(jsonData);
+        } catch (e) {
+          res.status(500).json({ error: 'Invalid JSON from Merit India', details: e.message });
+        }
+        resolve();
+      });
     });
 
-    if (!response.ok) {
-      throw new Error(`Merit India returned status: ${response.status}`);
-    }
+    request.on('error', (error) => {
+      console.error('Proxy Error:', error);
+      res.status(500).json({ error: 'Failed to fetch from Merit India', details: error.message });
+      resolve();
+    });
 
-    const data = await response.json();
-    res.status(200).json(data);
-    
-  } catch (error) {
-    console.error('Proxy Error:', error);
-    res.status(500).json({ error: 'Failed to fetch from Merit India', details: error.message });
-  }
+    request.end();
+  });
 }

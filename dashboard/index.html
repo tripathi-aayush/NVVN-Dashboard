@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chhattisgarh Power Grid — Demand Forecast Dashboard</title>
+  <meta name="description" content="Real-time electricity demand monitoring and AI forecast dashboard for Chhattisgarh power grid." />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">⚡</div>
+    <div class="sidebar-divider"></div>
+
+    <a class="nav-item active" data-page="live" href="#">
+      <span class="icon">📡</span>
+      <span class="label">Live Monitor</span>
+    </a>
+
+    <div class="sidebar-category">FORECAST</div>
+    
+    <a class="nav-item" data-page="tomorrow" href="#">
+      <span class="icon">🌅</span>
+      <span class="label">Tomorrow</span>
+    </a>
+    <a class="nav-item" data-page="next7days" href="#">
+      <span class="icon">📅</span>
+      <span class="label">Next 7 Days</span>
+    </a>
+
+    <div class="sidebar-category">ANALYSIS</div>
+
+    <a class="nav-item" data-page="historical" href="#">
+      <span class="icon">📊</span>
+      <span class="label">Historical Data</span>
+    </a>
+    <a class="nav-item" data-page="accuracy" href="#">
+      <span class="icon">🎯</span>
+      <span class="label">Accuracy Check</span>
+    </a>
+    <a class="nav-item" data-page="models" href="#">
+      <span class="icon">🤖</span>
+      <span class="label">ML Models</span>
+    </a>
+
+    <div style="flex:1"></div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item" style="cursor:default;opacity:0.5;padding-left:13px">
+      <span class="icon" style="font-size:18px">🇮🇳</span>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════
+       MAIN
+  ══════════════════════════════════════════════ -->
+  <div class="main">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div>
+          <div class="header-title">⚡ CG Power Grid Dashboard</div>
+        </div>
+        <span class="header-subtitle">Chhattisgarh State Load Dispatch</span>
+      </div>
+      <div class="header-right">
+        <div class="header-pill pill-dark">
+          <span style="color:var(--purple-light);font-size:10px">●</span> 5-Min Intervals
+        </div>
+        <div class="header-pill pill-dark" style="color:var(--orange)">
+          🌡️ <span id="header-w-temp">34.1°C</span>
+        </div>
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          LIVE
+        </div>
+        <div class="last-update" id="clock" style="margin-left:8px"></div>
+        <div class="last-update" id="last-update" style="margin-left:4px">—</div>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════
+         PAGE: LIVE MONITOR
+    ══════════════════════════════════════════ -->
+    <div class="page active" id="page-live">
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px">
+        <div>
+          <h1 class="section-title">Live Monitor</h1>
+          <p class="section-sub" style="margin-bottom:0">Real-time Chhattisgarh power demand vs AI forecast — auto-refreshes every 30 seconds</p>
+        </div>
+        <button class="btn btn-ghost" id="btn-refresh" style="display:flex; align-items:center; gap:6px; font-size:12px">
+          ↻ Refresh Now
+        </button>
+      </div>
+
+      <!-- Stat cards (Grid of 5) -->
+      <div class="grid-5" style="margin-bottom:20px">
+        <div class="card stat-card card-blue">
+          <div class="stat-header">
+            <span class="stat-label">LIVE DEMAND</span>
+            <div class="stat-icon" style="font-size:16px">⚡</div>
+          </div>
+          <div class="stat-value">
+            <span id="stat-current" class="val-cyan">—</span>
+            <span class="stat-unit">MW</span>
+          </div>
+          <div class="stat-footer">
+            <span class="stat-time" id="stat-time-current">03:30 pm</span>
+          </div>
+        </div>
+
+        <div class="card stat-card card-purple">
+          <div class="stat-header">
+            <span class="stat-label">CURRENT FORECAST</span>
+            <div class="stat-icon" style="font-size:16px">🔮</div>
+          </div>
+          <div class="stat-value">
+            <span id="stat-forecast-current" class="val-purple">—</span>
+            <span class="stat-unit">MW</span>
+          </div>
+          <div class="stat-footer">
+            <span class="stat-pill bg-purple-dim">AI Predicted</span>
+          </div>
+        </div>
+
+        <div class="card stat-card card-red">
+          <div class="stat-header">
+            <span class="stat-label">FORECAST PEAK</span>
+            <div class="stat-icon" style="font-size:16px">📈</div>
+          </div>
+          <div class="stat-value">
+            <span id="stat-peak" class="val-red">—</span>
+            <span class="stat-unit">MW</span>
+          </div>
+          <div class="stat-footer">
+            <span class="stat-pill bg-red-dim">Today's max</span>
+          </div>
+        </div>
+
+        <div class="card stat-card card-green">
+          <div class="stat-header">
+            <span class="stat-label">AVG MAPE</span>
+            <div class="stat-icon" style="font-size:16px">📉</div>
+          </div>
+          <div class="stat-value">
+            <span id="stat-avg-mape" class="val-green">—</span>
+            <span class="stat-unit">%</span>
+          </div>
+          <div class="stat-footer">
+            <span class="stat-pill bg-green-dim">Today so far</span>
+          </div>
+        </div>
+        
+        <div class="card stat-card card-orange">
+          <div class="stat-header">
+            <span class="stat-label">CURRENT MAPE</span>
+            <div class="stat-icon" style="font-size:16px">🎯</div>
+          </div>
+          <div class="stat-value">
+            <span id="stat-current-mape" class="val-orange">—</span>
+            <span class="stat-unit">%</span>
+          </div>
+          <div class="stat-footer">
+            <span class="stat-pill bg-orange-dim">This slot</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live chart -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="chart-header" style="margin-bottom:12px">
+          <div>
+            <div class="chart-title">Live Demand vs AI Forecast — Today</div>
+            <div class="chart-subtitle">5-minute actual readings overlaid with XGBoost prediction</div>
+          </div>
+          <div class="legend" style="margin-right:20px">
+            <div class="legend-item"><div class="legend-line" style="background:#00d4ff"></div>Actual (MW)</div>
+            <div class="legend-item"><div class="legend-line" style="background:#a855f7;height:2px;border-top:2px dashed #a855f7"></div>Forecast (MW)</div>
+            <div class="legend-item"><div class="legend-line" style="background:#f59e0b;height:1px;border-top:2px dashed #f59e0b"></div>Temp (°C)</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:350px">
+          <canvas id="chart-live"></canvas>
+        </div>
+      </div>
+
+      <!-- Weather strip -->
+      <div class="weather-strip">
+        <div class="weather-item">
+          <div class="weather-icon">🌡️</div>
+          <div class="weather-label">TEMPERATURE</div>
+          <div class="weather-value" id="w-temp" style="color:var(--orange)">—</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">💧</div>
+          <div class="weather-label">HUMIDITY</div>
+          <div class="weather-value" id="w-hum" style="color:var(--blue)">39%</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">🌧️</div>
+          <div class="weather-label">RAINFALL</div>
+          <div class="weather-value" id="w-rain" style="color:var(--purple-light)">0.00 mm</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">💨</div>
+          <div class="weather-label">WIND SPEED</div>
+          <div class="weather-value" id="w-wind" style="color:var(--green)">13.2 m/s</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PAGE: TOMORROW FORECAST
+    ══════════════════════════════════════════ -->
+    <div class="page" id="page-tomorrow">
+      
+      <div style="margin-bottom:24px">
+        <p class="section-sub" style="margin-bottom:0">5-minute interval AI predictions for the next day</p>
+      </div>
+
+      <!-- Forecast stat cards -->
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card stat-card card-red">
+          <div class="stat-header"><span class="stat-label">FORECAST PEAK</span><div class="stat-icon">📈</div></div>
+          <div class="stat-value"><span id="fc-peak" class="val-red">—</span><span class="stat-unit">MW</span></div>
+          <div class="stat-footer"><span style="color:var(--text-muted);font-size:12px">Maximum predicted</span></div>
+        </div>
+        <div class="card stat-card card-blue">
+          <div class="stat-header"><span class="stat-label">FORECAST AVERAGE</span><div class="stat-icon">⚡</div></div>
+          <div class="stat-value"><span id="fc-avg" class="val-cyan">—</span><span class="stat-unit">MW</span></div>
+          <div class="stat-footer"><span style="color:var(--text-muted);font-size:12px">Mean predicted</span></div>
+        </div>
+        <div class="card stat-card card-green">
+          <div class="stat-header"><span class="stat-label">FORECAST MIN</span><div class="stat-icon">📉</div></div>
+          <div class="stat-value"><span id="fc-min" class="val-green">—</span><span class="stat-unit">MW</span></div>
+          <div class="stat-footer"><span style="color:var(--text-muted);font-size:12px">Minimum predicted</span></div>
+        </div>
+      </div>
+
+      <!-- Forecast chart -->
+      <div class="card">
+        <div class="chart-header" style="align-items:flex-start">
+          <div>
+            <div class="chart-title" id="tmrw-chart-title">5-Min Demand Forecast</div>
+            <div class="chart-subtitle">XGBoost model — 288 slots · Cyan = actual (if available)</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:flex-end">
+            <div class="legend">
+              <div class="legend-item"><div class="legend-ring" style="border-color:#a855f7"></div>Predicted (MW)</div>
+              <div class="legend-item"><div class="legend-ring" style="border-color:#f59e0b"></div>Temperature (°C)</div>
+            </div>
+            <div class="tab-bar">
+              <button class="tab-btn fc-tab" data-h="5min">5-Min</button>
+              <button class="tab-btn fc-tab active" data-h="1hour">1-Hour</button>
+              <button class="tab-btn fc-tab" data-h="3hour">3-Hour</button>
+            </div>
+            <input class="date-input" type="date" id="fc-date" style="display:none;" />
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:400px">
+          <canvas id="chart-forecast-tomorrow"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ══════════════════════════════════════════
+         PAGE: NEXT 7 DAYS FORECAST
+    ══════════════════════════════════════════ -->
+    <div class="page" id="page-next7days">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px">
+        <div>
+          <h1 class="section-title">Next 7-Day Forecast</h1>
+          <p class="section-sub" style="margin-bottom:0">Daily demand outlook using the 24-hour horizon XGBoost model</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+          <span style="font-size:12px;color:var(--text-secondary)">Days ahead:</span>
+          <input class="date-input" type="number" id="fc7-days" value="7" min="1" max="30" style="width:60px; text-align:center" />
+          <button class="btn btn-primary" id="btn-load-7day">Generate</button>
+        </div>
+      </div>
+
+      <!-- Forecast stat cards -->
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="card stat-card card-red">
+          <div class="stat-header"><span class="stat-label">PERIOD PEAK</span><div class="stat-icon">📈</div></div>
+          <div class="stat-value"><span id="fc7-peak" class="val-red">—</span><span class="stat-unit">MW</span></div>
+        </div>
+        <div class="card stat-card card-blue">
+          <div class="stat-header"><span class="stat-label">PERIOD AVERAGE</span><div class="stat-icon">⚡</div></div>
+          <div class="stat-value"><span id="fc7-avg" class="val-cyan">—</span><span class="stat-unit">MW</span></div>
+        </div>
+        <div class="card stat-card card-green">
+          <div class="stat-header"><span class="stat-label">PERIOD MIN</span><div class="stat-icon">📉</div></div>
+          <div class="stat-value"><span id="fc7-min" class="val-green">—</span><span class="stat-unit">MW</span></div>
+        </div>
+      </div>
+
+      <!-- Forecast chart -->
+      <div class="card">
+        <div class="chart-header" style="flex-direction:column; align-items:flex-start; gap:16px">
+          <div>
+            <div class="chart-title">Daily Demand Forecast</div>
+            <div class="chart-subtitle">24-hour model · Yellow bars = predicted · Dashed = temperature</div>
+          </div>
+          <div class="legend" style="width:100%; justify-content:center">
+            <div class="legend-item"><div class="legend-ring" style="border-color:#eab308; background:rgba(234,179,8,0.3)"></div>Predicted (MW)</div>
+            <div class="legend-item"><div class="legend-ring" style="border-color:#f43f5e"></div>Temperature (°C)</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:350px">
+          <canvas id="chart-forecast-7day"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PAGE: HISTORICAL
+    ══════════════════════════════════════════ -->
+    <div class="page" id="page-historical">
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px">
+        <div>
+          <h1 class="section-title">Historical Data</h1>
+          <p class="section-sub" style="margin-bottom:0">Explore 3 years of Chhattisgarh demand data (Jan 2023 – Mar 2026)</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px">
+          <input class="date-input" type="date" id="hist-start" />
+          <span style="color:var(--text-muted);font-size:12px">to</span>
+          <input class="date-input" type="date" id="hist-end" />
+          <button class="btn btn-primary" id="btn-load-hist" style="background:#00d4ff; color:black; margin-left:8px">Load Data</button>
+        </div>
+      </div>
+
+      <!-- Controls + stats row -->
+      <div class="grid-3" style="margin-bottom:20px;">
+        <div class="card stat-card card-blue" style="grid-column:span 1">
+          <div class="stat-header"><span class="stat-label">PERIOD PEAK</span><div class="stat-icon">🏆</div></div>
+          <div class="stat-value"><span id="hist-peak" class="val-cyan">—</span><span class="stat-unit">MW</span></div>
+        </div>
+        <div class="card stat-card card-purple">
+          <div class="stat-header"><span class="stat-label">PERIOD AVG</span><div class="stat-icon">📊</div></div>
+          <div class="stat-value"><span id="hist-avg" class="val-purple">—</span><span class="stat-unit">MW</span></div>
+        </div>
+        <div class="card stat-card" style="border-color:transparent">
+          <div class="stat-header"><span class="stat-label">LOADED</span></div>
+          <div class="stat-value" style="color:var(--blue)"><span id="hist-days">—</span></div>
+          <div class="stat-footer"><span style="color:var(--text-muted);font-size:12px">days of data</span></div>
+        </div>
+      </div>
+
+      <!-- Historical trend chart -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="chart-header" style="flex-direction:column; align-items:flex-start; gap:16px">
+          <div>
+            <div class="chart-title">Daily Demand Trend</div>
+            <div class="chart-subtitle">Peak, average, and minimum daily demand</div>
+          </div>
+          <div class="legend" style="position:absolute; right:24px; top:24px">
+            <div class="legend-item"><div class="legend-dot" style="background:#f43f5e"></div>Peak</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#00d4ff"></div>Average</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Min</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:320px">
+          <canvas id="chart-historical"></canvas>
+        </div>
+      </div>
+
+      <!-- Year-over-year chart -->
+      <div class="card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Year-over-Year Comparison</div>
+            <div class="chart-subtitle">Monthly average demand — 2023 vs 2024 vs 2025 vs 2026</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:300px">
+          <canvas id="chart-yoy"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PAGE: ACCURACY CHECK & ML MODELS
+    ══════════════════════════════════════════ -->
+    <div class="page" id="page-accuracy">
+       <h1 class="section-title">Accuracy Check</h1>
+       <p class="section-sub">Compare actual demand against past predictions to verify model accuracy</p>
+       <div class="card">
+         <div class="chart-header">
+          <div>
+            <div class="chart-title">Next 30 Days Accuracy (Live)</div>
+            <div class="chart-subtitle">Comparing Daily Average Predictions vs Actuals</div>
+          </div>
+          <div class="legend" style="width:100%; justify-content:flex-end">
+            <div class="legend-item"><div class="legend-ring" style="border-color:#10b981"></div>Actual Average (MW)</div>
+            <div class="legend-item"><div class="legend-ring" style="border-color:#a855f7"></div>Predicted Average (MW)</div>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:350px">
+          <canvas id="chart-accuracy"></canvas>
+        </div>
+       </div>
+    </div>
+    
+    <div class="page" id="page-models">
+      <h1 class="section-title">ML Model Performance</h1>
+      <p class="section-sub">XGBoost models trained on 3,41,568 rows of Chhattisgarh data. Tested on Jan–Mar 2026.</p>
+      
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; align-items: stretch;">
+        <!-- Table Card -->
+        <div class="card" style="overflow-x:auto;">
+          <h2 style="font-size:16px; margin-bottom:20px; font-weight:600;">Model Accuracy Report</h2>
+          <table class="perf-table">
+            <thead>
+              <tr>
+                <th>MODEL</th>
+                <th>MAE</th>
+                <th>MAPE</th>
+                <th>R² SCORE</th>
+                <th>TRAINING ROWS</th>
+                <th>RATING</th>
+                <th>USE CASE</th>
+              </tr>
+            </thead>
+            <tbody id="models-table-body"></tbody>
+          </table>
+        </div>
+        
+        <!-- R2 Chart Card -->
+        <div class="card">
+          <h2 style="font-size:16px; margin-bottom:5px; font-weight:600;">R² Score Comparison</h2>
+          <p style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">Higher is better (max 100%)</p>
+          <div style="position:relative; height:250px;">
+            <canvas id="r2-donut-chart"></canvas>
+          </div>
+        </div>
+        
+        <!-- Details Card -->
+        <div class="card">
+          <h2 style="font-size:16px; margin-bottom:20px; font-weight:600;">Model Details</h2>
+          <div style="margin-bottom:20px;">
+            <div style="color:var(--text-muted); font-size:12px; margin-bottom:4px;">Algorithm</div>
+            <div style="font-weight:600; font-size:15px; margin-bottom:2px;">XGBoost Regressor</div>
+            <div style="color:var(--text-muted); font-size:11px;">600 estimators, LR=0.05, depth=6</div>
+          </div>
+          <div style="margin-bottom:20px;">
+            <div style="color:var(--text-muted); font-size:12px; margin-bottom:4px;">Training Data</div>
+            <div style="font-weight:600; font-size:15px; margin-bottom:2px;">Jan 2023 — Dec 2025</div>
+            <div style="color:var(--text-muted); font-size:11px;">3,41,568 rows (5-min Chhattisgarh)</div>
+          </div>
+          <div>
+            <div style="color:var(--text-muted); font-size:12px; margin-bottom:4px;">Test Period</div>
+            <div style="font-weight:600; font-size:15px; margin-bottom:2px;">Jan 2026 — Mar 2026</div>
+            <div style="color:var(--text-muted); font-size:11px;">Never seen by model during training</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Toast container -->
+<div class="toast-container"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

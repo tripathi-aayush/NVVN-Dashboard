@@ -314,7 +314,15 @@ def train_state_5min_model(state: str):
     df["y_lag_7d"] = df["y"].shift(2016)
 
     df = add_sample_weight(df)
-    df = df.dropna().reset_index(drop=True)
+    
+    # Only drop rows that have NaNs in the columns we actually use for training
+    feature_cols = [
+        "y", "temperature_c", "humidity_pct", "rain_mm", "wind_speed_ms",
+        "hour", "is_peak", "temp_x_hour", "humidity_x_hour", "wind_x_hour",
+        "is_weekend", "is_holiday", "season", "profile_y",
+        *[f"y_lag_{i}" for i in range(1, 7)], "y_lag_24h", "y_lag_7d", "sample_weight"
+    ]
+    df = df.dropna(subset=feature_cols).reset_index(drop=True)
 
     print("TRAIN ROWS:", len(df), "COLS:", df.shape[1])
 

@@ -214,3 +214,35 @@ class MeritStateCurrentOut(Schema):
     ImportData: Optional[str] = None
 
 
+class DailyForecastPoint(Schema):
+    date: str
+    peak_load_mw: float
+    average_load_mw: float
+    min_load_mw: float
+    energy_consumption_mu_per_day: float
+
+class Forecast7DayOut(Schema):
+    state: str
+    start_date: str
+    days: List[DailyForecastPoint]
+
+class HistoricalDataPoint(Schema):
+    date: str
+    peak_load_mw: float
+    average_load_mw: float
+    min_load_mw: float
+
+class HistoricalDataOut(Schema):
+    state: str
+    days: List[HistoricalDataPoint]
+
+class AccuracyPoint(Schema):
+    date: str
+    actual_load_mw: float
+    predicted_load_mw: float
+    mape_percent: float
+
+class AccuracyCheckOut(Schema):
+    state: str
+    overall_mape_percent: float
+    points: List[AccuracyPoint]

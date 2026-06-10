@@ -1,26 +1,27 @@
 from xgboost import XGBRegressor
 
-def train_xgb_model(df):
+def train_xgb_model(df, feature_cols=None):
     y = df["y"]
 
-    feature_cols = [
-        # weather
-        "temperature_c", "humidity_pct", "rain_mm", "wind_speed_ms",
+    if feature_cols is None:
+        feature_cols = [
+            # weather
+            "temperature_c", "humidity_pct", "rain_mm", "wind_speed_ms",
 
-        # time
-        "hour", "is_peak",
-        "temp_x_hour", "humidity_x_hour", "wind_x_hour",
+            # time
+            "hour", "is_peak",
+            "temp_x_hour", "humidity_x_hour", "wind_x_hour",
 
-        # calendar
-        "is_weekend", "is_holiday", "season",
+            # calendar
+            "is_weekend", "is_holiday", "season",
 
-        # 🔥 daily behaviour
-        "profile_y",
+            # 🔥 daily behaviour
+            "profile_y",
 
-        # lags
-        *[f"y_lag_{i}" for i in range(1, 7)],
-        "y_lag_24h", "y_lag_7d",
-    ]
+            # lags
+            *[f"y_lag_{i}" for i in range(1, 7)],
+            "y_lag_24h", "y_lag_7d",
+        ]
 
     X = df[feature_cols]
 

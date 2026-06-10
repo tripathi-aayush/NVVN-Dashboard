@@ -1,144 +1,18 @@
-# =========================
-# Python
-# =========================
+# Environments
+venv/
+env/
+.env
+
+# Database
+db.sqlite3
+db.sqlite3-shm
+db.sqlite3-wal
+
+# Compiled Python files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-*.pyd
-*.pyo
 
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
-.eggs/
-
-# =========================
-# Virtual Environment
-# =========================
-venv/
-env/
-ENV/
-.venv/
-env.bak/
-venv.bak/
-
-# =========================
-# Django
-# =========================
-*.log
-*.pot
-*.pyc
-db.sqlite3
-db.sqlite3-journal
-
-# Django migrations (optional: keep if needed)
-# */migrations/*
-# !*/migrations/__init__.py
-
-# Static & media files
-/staticfiles/
-/media/
-static_root/
-media_root/
-
-# Collected static
-/static/
-
-# =========================
-# Environment variables
-# =========================
-.env
-.env.*
-*.env
-
-# =========================
-# IDE / Editor
-# =========================
-
-# VS Code
-.vscode/
-
-# PyCharm
-.idea/
-
-# Sublime
-*.sublime-project
-*.sublime-workspace
-
-# =========================
-# OS files
-# =========================
+# OS Files
 .DS_Store
-Thumbs.db
-
-# =========================
-# Logs
-# =========================
-logs/
-*.log
-
-# =========================
-# Testing
-# =========================
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-
-# =========================
-# Jupyter Notebook
-# =========================
-.ipynb_checkpoints/
-
-# =========================
-# Docker
-# =========================
-*.pid
-*.seed
-*.pid.lock
-
-# =========================
-# Celery
-# =========================
-celerybeat-schedule
-celerybeat.pid
-
-# =========================
-# mypy / type checking
-# =========================
-.mypy_cache/
-
-# =========================
-# Ruff / lint
-# =========================
-.ruff_cache/
-
-# =========================
-# Coverage reports
-# =========================
-coverage.xml
-
-# =========================
-# Temporary files
-# =========================
-*.tmp
-*.swp
-*~
-
-# =========================
-# Backup files
-# =========================
-*.bak
-
-# =========================
-# Local settings (important for Django)
-# =========================
-local_settings.py
-
-# =========================
-# SQLite WAL files
-# =========================
-*.sqlite3-shm
-*.sqlite3-wal
+*.zip
